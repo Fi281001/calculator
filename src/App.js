@@ -99,7 +99,7 @@ function App() {
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [value]);
+  }, []);
   // Button component
   const Button = ({ className, label, onClick }) => {
     return (
