@@ -3,8 +3,10 @@ import { useState, useEffect, useRef } from "react";
 
 function App() {
   const [value, setValue] = useState("");
+
   // Xử lý font-size của result khi vượt quá width
   const resultRef = useRef(null);
+
   useEffect(() => {
     const adjustFontSize = () => {
       const span = resultRef.current;
@@ -18,30 +20,27 @@ function App() {
         }
       }
     };
+
     adjustFontSize();
     window.addEventListener("resize", adjustFontSize);
     return () => window.removeEventListener("resize", adjustFontSize);
   }, [value]);
 
   // xử lý tính toán
-  const handleEqual = () => {
+  const handelequal = () => {
     try {
-      // Loại bỏ các ký tự không hợp lệ và xử lý các số bắt đầu bằng 0
-      let sanitizedValue = value
-        .replace(/[^0-9+\-*/.]/g, "") // Xóa các ký tự không hợp lệ
-        .replace(/(\d+)\s*([\+\-*/])\s*0+(\d+)/g, "$1$2$3"); // Xử lý số octal
-      // Kiểm tra xem giá trị có phải là một phép toán hợp lệ không
-      if (sanitizedValue) {
-        // Tính toán kết quả của biểu thức
-        const result = eval(sanitizedValue);
-        // Định dạng số và cập nhật giá trị hiển thị
-        setValue(formatNumber(result)); // Cập nhật giá trị với biểu thức đã xử lý
-      } else {
-      }
+      // Chuẩn hóa biểu thức, thay thế các số bắt đầu bằng '0' (như 02) bằng các số không có dấu 0
+      const sanitizedValue = value.replace(/(\+|-|\*|\/)(0+(\d))/g, "$1$3");
+
+      // Sử dụng hàm eval để tính toán kết quả của biểu thức
+      const result = eval(sanitizedValue);
+      setValue(formatNumber(result));
     } catch (error) {
-      // Nếu có lỗi xảy ra, hiển thị "Error"
+      // Nếu có lỗi xảy ra (như nhập sai công thức), hiển thị "Error"
+      setValue("Error");
     }
   };
+
   // Tính toán và cập nhật giá trị khi người dùng nhấn toán tử
   const handleOperatorClick = (operator) => {
     try {
@@ -58,17 +57,21 @@ function App() {
       setValue("Error");
     }
   };
+
   const formatNumber = (num) => {
     const number = parseFloat(num);
     if (isNaN(number)) return "0";
+
     // Định dạng số với dấu chấm cho phân cách hàng nghìn
     const parts = number.toFixed(0).split(".");
     const integerPart = parts[0];
+
     // Thay dấu phân cách hàng nghìn bằng dấu chấm
     const formattedIntegerPart = integerPart.replace(
       /\B(?=(\d{3})+(?!\d))/g,
       "."
     );
+
     return `${formattedIntegerPart}`;
   };
   // sự kiến nhập bằng bàn phím
@@ -76,9 +79,10 @@ function App() {
     const handleKeyDown = (e) => {
       const key = e.key;
       const operators = "+-*/";
+
       if (key === "Enter") {
         e.preventDefault();
-        handleEqual();
+        handelequal();
       } else if (key === "Backspace") {
         e.preventDefault();
         setValue(value.slice(0, -1));
@@ -97,9 +101,10 @@ function App() {
         handleOperatorClick(key);
       }
     };
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  }, [value]);
   // Button component
   const Button = ({ className, label, onClick }) => {
     return (
@@ -117,7 +122,7 @@ function App() {
       <div>
         <div className="container">
           <span ref={resultRef} className="result">
-            {value || 0}
+            {value || "0"}
           </span>
         </div>
         <div className="container2">
@@ -135,7 +140,7 @@ function App() {
             <Button
               className="button-action2"
               label={"="}
-              onClick={handleEqual}
+              onClick={handelequal}
             />
           </div>
           <div className="row">
